@@ -1,0 +1,6 @@
+Revision history for Perl extension Text::CSV::BulkData.
+
+0.01  Sat Apr 19 02:31:01 2008
+	- original version; created by h2xs 1.23 with options
+		-AX -n Text::CSV::BulkData
+
