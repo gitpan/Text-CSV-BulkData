@@ -1,10 +1,10 @@
 --- #YAML:1.0
 name:                Text-CSV-BulkData
-version:             0.01
+version:             0.02
 abstract:            generate csv file with bulk data
-license:             ~
+license:             perl
 author:              
-    - A. U. Thor <webmaster@localdomain>
+    - Kazuhiro Sera <webmaster@seratch.ath.cx>
 generated_by:        ExtUtils::MakeMaker version 6.44
 distribution_type:   module
 requires:     

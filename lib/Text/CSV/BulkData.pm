@@ -1,9 +1,10 @@
 package Text::CSV::BulkData;
 
 use strict;
-use warnings;
+use vars qw($VERSION);
+our $VERSION = '0.02';
 
-our $VERSION = '0.01';
+use Carp;
 
 sub new { 
     my ($class, $output_file, $format) = @_;
@@ -40,7 +41,7 @@ sub set_end {
 sub initialize {
     my $self = shift;
     my $output_file = $self->{output_file};
-    unlink $output_file or die $! if -f $output_file;
+    unlink $output_file or croak $! if -f $output_file;
     return $self;
 }
 
@@ -48,7 +49,7 @@ sub make {
     my $self = shift;
     my ($output_file, $start, $end, $format, $pattern ) = 
         ( $self->{output_file}, $self->{start}, $self->{end}, $self->{format}, $self->{pattern} );
-    open FH, ">> $output_file" or die $!;
+    open FH, ">> $output_file" or croak $!;
     for (my $i = $start; $i <= $end; $i++){
         my @input = ();
         for (my $j = 0; $j < ($format =~ s/%/%/g); $j++) {
@@ -144,7 +145,7 @@ None
 
 =head1 AUTHOR
 
-Kazuhiro Sera, E<lt>webmaster@seratch.ath.cx<gt>
+Kazuhiro Sera, E<lt>webmaster@seratch.ath.cxE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 

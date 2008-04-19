@@ -1,12 +1,13 @@
-use 5.000000;
+use strict;
 use ExtUtils::MakeMaker;
-# See lib/ExtUtils/MakeMaker.pm for details of how to influence
-# the contents of the Makefile that is written.
+
 WriteMakefile(
     NAME              => 'Text::CSV::BulkData',
-    VERSION_FROM      => 'lib/Text/CSV/BulkData.pm', # finds $VERSION
-    PREREQ_PM         => {}, # e.g., Module::Name => 1.1
-    ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
-      (ABSTRACT_FROM  => 'lib/Text/CSV/BulkData.pm', # retrieve abstract from module
-       AUTHOR         => 'A. U. Thor <webmaster@localdomain>') : ()),
+    VERSION_FROM      => 'lib/Text/CSV/BulkData.pm',
+    LICENSE           => 'perl',
+    PREREQ_PM         => {},
+    ($] >= 5.005 ? 
+      (ABSTRACT_FROM  => 'lib/Text/CSV/BulkData.pm', 
+       AUTHOR         => 'Kazuhiro Sera <webmaster@seratch.ath.cx>') : ()),
 );
+
