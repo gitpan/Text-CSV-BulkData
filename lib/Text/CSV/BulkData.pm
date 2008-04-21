@@ -2,7 +2,7 @@ package Text::CSV::BulkData;
 
 use strict;
 use vars qw($VERSION);
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use Carp;
 
@@ -49,6 +49,8 @@ sub make {
     my $self = shift;
     my ($output_file, $start, $end, $format, $pattern ) = 
         ( $self->{output_file}, $self->{start}, $self->{end}, $self->{format}, $self->{pattern} );
+    my $debug_ary_ref;
+
     open FH, ">> $output_file" or croak $!;
     for (my $i = $start; $i <= $end; $i++){
         my @input = ();
@@ -58,39 +60,86 @@ sub make {
                 push @input, $i;
                 next;
             }
-            push @input, $self->_calculate($pattern, $i);
+            push @input, $self->_calculate($pattern, $i, 0);
         }
-        printf FH $format, @input;
+        $self->{debug} ? push @$debug_ary_ref, sprintf $format, @input : printf FH $format, @input;
     }
     close FH;
-    return $self;
+   
+    $self->{debug} ? return $debug_ary_ref : return $self;
 }
 
 sub _calculate {
-    my ($self, $pattern, $i) = @_;
+    my ($self, $pattern, $i, $flag) = @_;
+    if ( ! $flag && $self->_is_recursive_start($pattern) ) {
+        $pattern =~ m{^(\d+)[^0-9]};
+        $self->{pattern} = $pattern;
+        $self->{before} = $1;
+        $pattern =~ s{^\d+([^0-9])}{$1};
+        return $self->_calculate($pattern, $i, 1); 
+    }
+
     if ( $pattern =~ m{\*(\d+)} ) {
-        my $res = $i*$1;
-        $pattern =~ s{(\*\d+?\w)|(\*\d+$)}{$res};
-        $self->_calculate($pattern, $i);
+        if ( $flag eq 1) {
+            $pattern = $self->_return_substituted('^\d+\*\d+', $self->{before} * $1);
+        } else { 
+            my $res = $i * $1;
+            $pattern =~ s{\*\d+}{$res};
+        }
+        $self->_calculate($pattern, $i, 0);
     } elsif ( $pattern =~ m{/(\d+)} ) {
-        my $res = $i/$1;
-        $pattern =~ s{(/\d+?\w)|(/\d+$)}{$res};
-        $self->_calculate($pattern, $i);
+        if ( $flag eq 1) {
+            $pattern = $self->_return_substituted('^\d+/\d+', int($self->{before} / $1));
+        } else { 
+            my $res = int($i / $1);
+            $pattern =~ s{/\d+}{$res};
+        }
+        $self->_calculate($pattern, $i, 0);
     } elsif ( $pattern =~ m{%(\d+)} ) {
-        my $res = $i%$1;
-        $pattern =~ s{(%\d+?\w)|(%\d+$)}{$res};
-        $self->_calculate($pattern, $i);
+        if ( $flag eq 1) {
+            $pattern = $self->_return_substituted('^\d+%\d+', $self->{before} % $1);
+        } else { 
+            my $res = $i % $1;
+            $pattern =~ s{%\d+?}{$res};
+        }
+        $self->_calculate($pattern, $i, 0);
     } elsif ( $pattern =~ m{\+(\d+)} ) {
-        my $res = $i+$1;
-        $pattern =~ s{(\+\d+?\w)|(\+\d+$)}{$res};
-        $self->_calculate($pattern, $i);
+        if ( $flag eq 1) {
+            $pattern = $self->_return_substituted('^\d+\+\d+', $self->{before} + $1);
+        } else { 
+            my $res = $i + $1;
+            $pattern =~ s{\+\d+}{$res};
+        }
+        $self->_calculate($pattern, $i, 0);
     } elsif ( $pattern =~ m{-(\d+)} ) {
-        my $res = $i-$1;
-        $pattern =~ s{(-\d+?\w)|(-\d+$)}{$res};
-        $self->_calculate($pattern, $i);
+        if ( $flag eq 1) {
+            $pattern = $self->_return_substituted('^\d+-\d+', $self->{before} - $1);
+        } else { 
+            my $res = $i - $1;
+            $pattern =~ s{-\d+}{$res};
+        }
+        $self->_calculate($pattern, $i, 0);
     } else {
         return $pattern;
     }
+}
+
+sub _return_substituted {
+    my ($self, $regexp, $res) = @_;
+    $self->{pattern} =~ s{$regexp}{$res};
+    return $self->{pattern};
+}
+
+sub _is_recursive_start {
+    my $self = shift;
+    my $pattern = shift;
+    ( $pattern =~ /^\d+/ && $pattern !~ /^\d+$/ ) ? return 1 : return 0;
+}
+
+sub _set_debug {
+    my $self = shift;
+    $self->{debug} = 1;
+    return $self;
 }
 
 1;
@@ -109,35 +158,32 @@ Text::CSV::BulkData - generate csv file with bulk data
 
   my $gen = Text::CSV::BulkData->new($output_file, $format);
 
-  my $pattern_1 = [undef,'*2','+2',undef];
+  my $pattern_1 = [undef,'*2','-2','*2+1'];
   $gen->initialize
       ->set_pattern($pattern_1)
       ->set_start(1)
-      ->set_end(5)
+      ->set_end(3)
       ->make;
-  my $pattern_2 = [undef,'/10','-2','%2'];
+  my $pattern_2 = [undef,'/10','*3/2','%2'];
   $gen->set_pattern($pattern_2)
-      ->set_start(6)
+      ->set_start(8)
       ->set_end(10)
       ->make;
 
 This sample generates following csv file.
 
-  09070000001,JPN,160-0002,type0000003,01204440001,20080418100000
-  09070000002,JPN,160-0004,type0000004,01204440002,20080418100000
-  09070000003,JPN,160-0006,type0000005,01204440003,20080418100000
-  09070000004,JPN,160-0008,type0000006,01204440004,20080418100000
-  09070000005,JPN,160-0010,type0000007,01204440005,20080418100000
-  09070000006,JPN,160-0000,type0000004,01204440000,20080418100000
-  09070000007,JPN,160-0000,type0000005,01204440001,20080418100000
-  09070000008,JPN,160-0000,type0000006,01204440000,20080418100000
-  09070000009,JPN,160-0000,type0000007,01204440001,20080418100000
-  09070000010,JPN,160-0001,type0000008,01204440000,20080418100000
-  
+  09070000001,JPN,160-0002,type0000000,01204440003,20080418100000
+  09070000002,JPN,160-0004,type0000000,01204440005,20080418100000
+  09070000003,JPN,160-0006,type0000001,01204440007,20080418100000
+  09070000008,JPN,160-0000,type0000012,01204440000,20080418100000
+  09070000009,JPN,160-0000,type0000013,01204440001,20080418100000
+  09070000010,JPN,160-0001,type0000015,01204440000,20080418100000
+
 =head1 DESCRIPTION
 
 Text::CSV::BulkData is a Perl module which generates csv files with bulk data.
-You can modify incremented values with using 4 arithmetic operations and residue.
+
+You can modify incremented values with using addition(+), subtraction(-), multiplication(*), division(/) and residue(%). Precedence of operators is '*', '/', '%', '+', '-'. The right of the decimal point are truncated.
 
 =head1 SEE ALSO
 
