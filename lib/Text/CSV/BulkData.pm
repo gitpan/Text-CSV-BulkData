@@ -2,7 +2,7 @@ package Text::CSV::BulkData;
 
 use strict;
 use vars qw($VERSION);
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Carp;
 
@@ -100,7 +100,7 @@ sub _calculate {
             $pattern = $self->_return_substituted('^\d+%\d+', $self->{before} % $1);
         } else { 
             my $res = $i % $1;
-            $pattern =~ s{%\d+?}{$res};
+            $pattern =~ s{%\d+}{$res};
         }
         $self->_calculate($pattern, $i, 0);
     } elsif ( $pattern =~ m{\+(\d+)} ) {
