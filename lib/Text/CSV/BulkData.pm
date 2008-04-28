@@ -2,7 +2,7 @@ package Text::CSV::BulkData;
 
 use strict;
 use vars qw($VERSION);
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use Carp;
 
@@ -72,14 +72,21 @@ sub make {
             if ( ! defined $pattern ) { 
                 push @input, $i;
                 next;
+            } elsif ( $pattern !~ m/^[%\/\*\+-]/ ) {
+                push @input, $pattern;
+                next;
             }
             push @input, $self->_calculate($pattern, $i, 0);
         }
-        $self->{debug} ? push @$debug_ary_ref, sprintf $format, @input : printf FH $format, @input;
+        $self->{debug} 
+            ? push @$debug_ary_ref, sprintf $format, @input 
+            : printf FH $format, @input;
     }
     close FH;
    
-    $self->{debug} ? return $debug_ary_ref : return $self;
+    $self->{debug} 
+        ? return $debug_ary_ref 
+        : return $self;
 }
 
 sub _calculate {
@@ -205,7 +212,7 @@ Text::CSV::BulkData - generate csv file with bulk data
 
   my $output_file_2 = "/your/dir/yetanotherfile.dat";
   my $format_2  = "0907000%04d,JPN,160-%04d,type000%04d,0120444%04d,20080418%02d0000,20080419%02d0000\n";
-  my $pattern_2 = [undef,'/10','*3/2','%2', '%24-1','%24'];
+  my $pattern_2 = [undef,'/10','*3/2','%2', '%24-1','23'];
 
   $gen->set_output_file($output_file_2)
       ->set_format($format_2)
@@ -226,14 +233,20 @@ This sample generates following csv file.
 /your/dir/yetanotherfile.dat
 
   09070000239,JPN,160-0023,type0000358,01204440001,20080418220000,20080419230000
-  09070000240,JPN,160-0024,type0000360,01204440000,20080418230000,20080419000000
-  09070000241,JPN,160-0024,type0000361,01204440001,20080418000000,20080419010000
+  09070000240,JPN,160-0024,type0000360,01204440000,20080418230000,20080419230000
+  09070000241,JPN,160-0024,type0000361,01204440001,20080418000000,20080419230000
 
 =head1 DESCRIPTION
 
 Text::CSV::BulkData is a Perl module which generates csv files with bulk data.
 
-You can modify incremented values with using addition(+), subtraction(-), multiplication(*), division(/) and residue(%). Precedence of operators is '*', '/', '%', '+', '-'. The right of the decimal point are truncated.
+You can modify incremented values with using addition(+), subtraction(-), multiplication(*), division(/) and residue(%). 
+
+Precedence of operators is '*', '/', '%', '+', '-'. 
+
+The right of the decimal point are truncated.
+
+Beginning with no operators means fixed value(integer or string).
 
 =head1 SEE ALSO
 

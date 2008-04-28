@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Text-CSV-BulkData
-version:             0.05
+version:             0.06
 abstract:            generate csv file with bulk data
 license:             perl
 author:              

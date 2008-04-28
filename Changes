@@ -16,3 +16,6 @@ Revision history for Perl extension Text::CSV::BulkData.
 0.05  Thu Apr 24 01:46:39 2008
 	- add residue loop operation
 
+0.06  Tue Apr 29 01:35:29 2008
+	- add using fixed value
+

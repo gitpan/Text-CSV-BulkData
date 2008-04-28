@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests=>33;
+use Test::More tests=>47;
 
 BEGIN { use_ok('Text::CSV::BulkData') };
 
@@ -56,5 +56,27 @@ ok $res = $gen->make, '$obj->make';
 is $$res[0], "09070000239,JPN,160-0023,type0000358,01204440001,20080418220000,20080418230000\n", 'calc result';
 is $$res[1], "09070000240,JPN,160-0024,type0000360,01204440000,20080418230000,20080418000000\n", 'calc result';
 is $$res[2], "09070000241,JPN,160-0024,type0000361,01204440001,20080418000000,20080418010000\n", 'calc result';
+
+my $format_3  = "0907000%04d,%s,160-%04d,20080418%02d0000\n";
+my $pattern_3 = ['3398','JAPAN','10', '0']; 
+ok ref $pattern_3 eq 'ARRAY', 'pattern_3 data';
+
+ok $res = $gen->set_format($format_3), '$obj->set_format($string)';
+is $res, $gen, 'returns $self';
+
+ok $res = $gen->set_pattern($pattern_3), '$obj->set_pattern($array_ref)';
+is $res, $gen, 'returns $self';
+
+ok $res = $gen->set_start(100), '$obj->set_start($int)';
+is $res, $gen, 'returns $self';
+is $gen->{start}, 100, 'set_start';
+
+ok $res = $gen->set_end(101), '$obj->set_end($int)';
+is $res, $gen, 'returns $self';
+is $gen->{end}, 101, 'set_end';
+
+ok $res = $gen->make, '$obj->make';
+is $$res[0], "09070003398,JAPAN,160-0010,20080418000000\n", 'calc result';
+is $$res[1], "09070003398,JAPAN,160-0010,20080418000000\n", 'calc result';
 
 __END__
